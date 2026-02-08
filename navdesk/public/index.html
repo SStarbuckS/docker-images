@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简网站导航</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/static/css/theme-variables.css">
+    <!-- 防止主题闪烁：在页面渲染前立即应用主题 -->
+    <script src="/static/js/theme-init.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--bg-color, #ffffff);
+            color: var(--text-color, #333);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* 公共主题变量已通过外部CSS文件引入：/css/theme-variables.css */
+        /* 前台特有的主题变量 */
+        :root {
+            --desc-color: #666;
+            --input-bg: #f8f9fa;
+            --dock-bg: rgba(255, 255, 255, 0.85);
+            --dock-border: rgba(255, 255, 255, 0.2);
+            --dock-item-hover: rgba(255, 255, 255, 0.6);
+        }
+
+        [data-theme="dark"] {
+            --desc-color: #cccccc;
+            --input-bg: #333333;
+            --dock-bg: rgba(45, 45, 45, 0.85);
+            --dock-border: rgba(255, 255, 255, 0.1);
+            --dock-item-hover: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width, 300px) 1fr var(--sidebar-width, 300px);
+            min-height: 100vh;
+        }
+
+        .left-sidebar, .right-sidebar {
+            background: var(--bg-color);
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 0 20px;
+            background: var(--bg-color);
+        }
+
+        /* 搜索框区域 */
+        .search-section {
+            padding: 40px 0 20px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-color);
+            z-index: 10;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            box-shadow: 0 2px 10px var(--card-shadow);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 4px 20px var(--card-shadow-hover);
+            background: var(--card-bg);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 18px;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--card-shadow);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* 书签卡片样式 */
+        .bookmarks-section {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .bookmarks-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 100px;
+            justify-content: center;
+        }
+
+        .bookmark-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 16px var(--card-shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: var(--card-height, 80px);
+            width: var(--card-width, 200px);
+            flex-shrink: 0;
+        }
+
+        .bookmark-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px var(--card-shadow-hover);
+        }
+
+        .bookmark-icon {
+            width: var(--icon-width, 48px);
+            height: var(--icon-height, 48px);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: calc(var(--icon-width, 48px) * 0.5);
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .bookmark-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bookmark-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bookmark-desc {
+            font-size: 13px;
+            color: var(--desc-color, #666);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-clamp: 2;
+            overflow: hidden;
+        }
+
+        /* Dock 样式 */
+        .dock {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dock-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 12px 20px;
+            box-shadow: 0 8px 32px var(--card-shadow-hover);
+            border: 1px solid var(--dock-border);
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+        }
+
+        .dock-item {
+            position: relative;
+            padding: 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dock-item:hover {
+            transform: scale(1.2) translateY(-8px);
+            background: var(--dock-item-hover);
+        }
+
+        .dock-item.active {
+            background: #007aff;
+            color: white;
+        }
+
+        .dock-item.active:hover {
+            background: #0056cc;
+        }
+
+        .dock-icon {
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .dock-label {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .dock-item:hover .dock-label {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
+        /* 隐藏类 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1400px) {
+            .container {
+                grid-template-columns: calc(var(--sidebar-width, 300px) * 0.67) 1fr calc(var(--sidebar-width, 300px) * 0.67);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .left-sidebar, .right-sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 0 40px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                padding: 0 30px;
+            }
+            
+            .bookmarks-grid {
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 0 20px;
+            }
+            
+            .bookmarks-grid {
+                gap: 16px;
+            }
+
+            .dock {
+                bottom: 10px;
+                padding: 8px 16px;
+                border-radius: 20px;
+            }
+
+            .dock-item {
+                padding: 8px;
+            }
+
+            .dock-icon {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 0 15px;
+            }
+            
+            .bookmarks-grid {
+                gap: 12px;
+            }
+        }
+
+        /* 快捷操作按钮容器 - 固定在右下角 */
+        .quick-actions {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: none; /* 默认隐藏，登录后显示 */
+            flex-direction: column;
+            gap: 15px;
+            z-index: 999;
+        }
+
+        /* 快捷操作按钮通用样式 */
+        .quick-action-btn {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .quick-action-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(0, 122, 255, 0.4);
+            background: linear-gradient(135deg, #0056cc 0%, #003d99 100%);
+        }
+
+        .quick-action-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 快捷添加书签弹窗样式 */
+        .quick-add-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-bg);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .quick-add-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quick-add-modal iframe {
+            width: 90%;
+            max-width: 600px; /* 减小宽度，因为只显示表单 */
+            height: 80vh; /* 减小高度 */
+            border: none;
+            border-radius: 16px;
+            background: transparent; /* 设置为透明背景 */
+            box-shadow: none; /* 移除阴影，让表单自己的阴影显示 */
+            opacity: 0; /* 初始隐藏iframe */
+            transition: opacity 0.3s ease; /* 平滑显示动画 */
+        }
+
+        /* iframe内容准备好后显示 */
+        .quick-add-modal iframe.ready {
+            opacity: 1;
+        }
+
+        /* 加载指示器 */
+        .quick-add-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .quick-actions {
+                bottom: 100px; /* 避免与dock冲突 */
+                right: 20px;
+                gap: 12px;
+            }
+
+            .quick-action-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .quick-add-modal iframe {
+                width: 95%;
+                height: 85vh;
+                border-radius: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .quick-actions {
+                bottom: 90px;
+                right: 15px;
+                gap: 10px;
+            }
+
+            .quick-action-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧边栏 -->
+        <div class="left-sidebar">
+            <!-- 左侧内容可以后续扩展 -->
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+        <!-- 搜索框区域 -->
+        <div class="search-section">
+                <div class="search-container">
+                <input type="text" class="search-input" placeholder="搜索网站..." id="searchInput">
+                <span class="search-icon">🔍</span>
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()">
+                    <span id="themeIcon">🌗</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 书签卡片区域 -->
+        <div class="bookmarks-section">
+            <div class="bookmarks-grid" id="bookmarksGrid">
+                <!-- 书签将通过 JavaScript 动态加载 -->
+            </div>
+            </div>
+        </div>
+
+        <!-- 右侧边栏 -->
+        <div class="right-sidebar">
+            <!-- 右侧内容可以后续扩展 -->
+        </div>
+    </div>
+
+    <!-- MacOS Dock 风格导航栏 -->
+    <div class="dock">
+        <!-- 分类将通过 JavaScript 动态加载 -->
+    </div>
+
+    <!-- 快捷操作按钮组 - 固定在主内容区域右下角 -->
+    <div class="quick-actions" id="quickActions">
+        <button class="quick-action-btn" id="quickAddBtn" title="快速添加书签">
+            ➕
+        </button>
+        <button class="quick-action-btn" id="adminEntryBtn" title="进入后台管理">
+            ⚙️
+        </button>
+    </div>
+
+    <!-- 快捷添加书签弹窗 -->
+    <div class="quick-add-modal" id="quickAddModal">
+        <div class="quick-add-loading" id="quickAddLoading">
+            <div class="loading-spinner"></div>
+            <span>正在加载...</span>
+        </div>
+        <iframe id="quickAddIframe" src=""></iframe>
+    </div>
+
+    <script>
+        // DOM 元素
+        const searchInput = document.getElementById('searchInput');
+        const bookmarksGrid = document.getElementById('bookmarksGrid');
+        
+        // 数据变量
+        let categories = [];
+        let bookmarks = [];
+        let settings = {};
+        let currentCategory = 'all';
+        let currentTheme = 'auto';
+        let isUserLoggedIn = false; // 用户登录状态
+
+        // 检查用户登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/auth/status');
+                const result = await response.json();
+                
+                if (result.success && result.isLoggedIn) {
+                    isUserLoggedIn = true;
+                    showQuickAddButton();
+                } else {
+                    isUserLoggedIn = false;
+                    hideQuickAddButton();
+                }
+            } catch (error) {
+                console.error('Error checking login status:', error);
+                isUserLoggedIn = false;
+                hideQuickAddButton();
+            }
+        }
+
+        // 显示快捷操作按钮组
+        function showQuickAddButton() {
+            const quickActions = document.getElementById('quickActions');
+            if (quickActions) {
+                quickActions.style.display = 'flex';
+            }
+        }
+
+        // 隐藏快捷操作按钮组
+        function hideQuickAddButton() {
+            const quickActions = document.getElementById('quickActions');
+            if (quickActions) {
+                quickActions.style.display = 'none';
+            }
+        }
+
+        // 从 API 加载数据
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                const result = await response.json();
+                
+                if (result.success) {
+                    categories = result.data.categories;
+                    bookmarks = result.data.bookmarks;
+                    settings = result.data.settings || {};
+                    
+                    applySettings();
+                    initTheme();
+                    renderDock();
+                    renderBookmarks();
+                } else {
+                    console.error('Failed to load data:', result.message);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        // 渲染 Dock 导航栏
+        function renderDock() {
+            const dock = document.querySelector('.dock');
+            dock.innerHTML = '';
+            
+            categories.forEach(category => {
+                const dockItem = document.createElement('div');
+                dockItem.className = `dock-item ${category.id === currentCategory ? 'active' : ''}`;
+                dockItem.dataset.category = category.id;
+                
+                dockItem.innerHTML = `
+                    <span class="dock-icon">${category.icon}</span>
+                    <span class="dock-label">${category.name}</span>
+                `;
+                
+                dockItem.addEventListener('click', function() {
+                    // 更新选中状态
+                    document.querySelectorAll('.dock-item').forEach(item => item.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 获取选中的分类
+                    currentCategory = this.dataset.category;
+                    
+                    // 过滤显示对应分类的书签
+                    filterBookmarks();
+                });
+                
+                dock.appendChild(dockItem);
+            });
+        }
+
+        // 渲染书签卡片
+        function renderBookmarks() {
+            bookmarksGrid.innerHTML = '';
+            
+            const filteredBookmarks = getFilteredBookmarks();
+            
+            filteredBookmarks.forEach(bookmark => {
+                const card = document.createElement('div');
+                card.className = 'bookmark-card';
+                card.dataset.category = bookmark.category;
+                
+                // 生成图标背景色
+                const iconStyle = bookmark.icon && (bookmark.icon.startsWith('http') || bookmark.icon.startsWith('/'))
+                    ? `background-image: url(${bookmark.icon}); background-size: cover; background-position: center;`
+                    : `background: linear-gradient(135deg, ${getRandomGradient()});`;
+                
+                const iconElement = document.createElement('div');
+                iconElement.className = 'bookmark-icon';
+                iconElement.style.cssText = iconStyle;
+                
+                // 如果是图片URL，添加错误处理
+                if (bookmark.icon && (bookmark.icon.startsWith('http') || bookmark.icon.startsWith('/'))) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // 图片加载成功，保持背景图片
+                    };
+                    img.onerror = function() {
+                        // 图片加载失败，显示文档图标
+                        iconElement.style.backgroundImage = '';
+                        iconElement.style.background = `linear-gradient(135deg, ${getRandomGradient()})`;
+                        iconElement.textContent = '📄';
+                    };
+                    img.src = bookmark.icon;
+                } else {
+                    // 不是图片URL，显示文档图标
+                    iconElement.textContent = '📄';
+                }
+                
+                card.innerHTML = `
+                    <div class="bookmark-content">
+                        <div class="bookmark-title">${bookmark.name}</div>
+                        <div class="bookmark-desc">${bookmark.description}</div>
+                    </div>
+                `;
+                
+                card.insertBefore(iconElement, card.firstChild);
+                
+                // 点击事件
+                card.addEventListener('click', function() {
+                    if (bookmark.url) {
+                        window.open(bookmark.url, '_blank');
+                    }
+                });
+                
+                bookmarksGrid.appendChild(card);
+            });
+        }
+
+        // 获取过滤后的书签
+        function getFilteredBookmarks() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            return bookmarks.filter(bookmark => {
+                // 分类过滤
+                const matchesCategory = currentCategory === 'all' || bookmark.category === currentCategory;
+                
+                // 搜索过滤
+                const matchesSearch = !searchTerm || 
+                    bookmark.name.toLowerCase().includes(searchTerm) || 
+                    bookmark.description.toLowerCase().includes(searchTerm) ||
+                    (bookmark.tags && bookmark.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
+                
+                return matchesCategory && matchesSearch;
+            });
+        }
+
+        // 过滤书签
+        function filterBookmarks() {
+            renderBookmarks();
+        }
+
+        // 生成随机渐变色
+        function getRandomGradient() {
+            const gradients = [
+                '#667eea 0%, #764ba2 100%',
+                '#f093fb 0%, #f5576c 100%',
+                '#4facfe 0%, #00f2fe 100%',
+                '#fa709a 0%, #fee140 100%',
+                '#a8edea 0%, #fed6e3 100%',
+                '#ffecd2 0%, #fcb69f 100%',
+                '#ff9a9e 0%, #fecfef 100%',
+                '#ff6b6b 0%, #ee5a52 100%',
+                '#ffeaa7 0%, #fab1a0 100%',
+                '#81ecec 0%, #6c5ce7 100%',
+                '#a29bfe 0%, #6c5ce7 100%',
+                '#fd79a8 0%, #fdcb6e 100%',
+                '#fdcb6e 0%, #e17055 100%',
+                '#74b9ff 0%, #0984e3 100%',
+                '#00b894 0%, #00cec9 100%'
+            ];
+            return gradients[Math.floor(Math.random() * gradients.length)];
+        }
+
+        // 搜索功能
+        searchInput.addEventListener('input', function() {
+            filterBookmarks();
+        });
+
+        // 键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K 聚焦搜索框
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            
+            // ESC 清空搜索
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                filterBookmarks();
+            }
+        });
+
+        // 平滑滚动到顶部（点击搜索框时）
+        searchInput.addEventListener('focus', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // 应用设置
+        function applySettings() {
+            const root = document.documentElement;
+            
+            // 应用网站标题
+            if (settings.siteTitle) {
+                document.title = settings.siteTitle;
+            }
+            
+            // 应用卡片尺寸
+            if (settings.cardWidth) {
+                root.style.setProperty('--card-width', settings.cardWidth + 'px');
+            }
+            if (settings.cardHeight) {
+                root.style.setProperty('--card-height', settings.cardHeight + 'px');
+            }
+            
+            // 应用图标尺寸
+            if (settings.iconWidth) {
+                root.style.setProperty('--icon-width', settings.iconWidth + 'px');
+            }
+            if (settings.iconHeight) {
+                root.style.setProperty('--icon-height', settings.iconHeight + 'px');
+            }
+            
+            // 应用侧边栏宽度
+            if (settings.sidebarWidth) {
+                root.style.setProperty('--sidebar-width', settings.sidebarWidth + 'px');
+            }
+        }
+
+        // 初始化主题
+        function initTheme() {
+            currentTheme = settings.theme || localStorage.getItem('theme') || 'auto';
+            applyTheme(currentTheme);
+        }
+
+        // 应用主题
+        function applyTheme(theme) {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (theme === 'auto') {
+                // 检测系统主题
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                html.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+                themeIcon.textContent = '🌗';
+            } else {
+                html.setAttribute('data-theme', theme);
+                themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+            }
+            
+            localStorage.setItem('theme', theme);
+        }
+
+        // 切换主题
+        function toggleTheme() {
+            const themes = ['auto', 'light', 'dark'];
+            const currentIndex = themes.indexOf(currentTheme);
+            const nextIndex = (currentIndex + 1) % themes.length;
+            currentTheme = themes[nextIndex];
+            
+            applyTheme(currentTheme);
+        }
+
+        // 监听系统主题变化
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (currentTheme === 'auto') {
+                applyTheme('auto');
+            }
+        });
+
+        // 快捷添加书签功能
+        function showQuickAddModal() {
+            if (!isUserLoggedIn) {
+                alert('请先登录后再添加书签');
+                return;
+            }
+
+            const modal = document.getElementById('quickAddModal');
+            const iframe = document.getElementById('quickAddIframe');
+            const loading = document.getElementById('quickAddLoading');
+            
+            // 重置iframe状态
+            iframe.classList.remove('ready');
+            iframe.src = '';
+            
+            // 显示弹窗和加载指示器
+            modal.classList.add('show');
+            loading.style.display = 'flex';
+            
+            // 预加载iframe内容
+            setTimeout(() => {
+                iframe.src = '/admin/category-detail.html?id=all&quickAdd=true';
+            }, 50); // 短暂延迟确保弹窗已显示
+            
+            // 监听iframe加载完成
+            iframe.onload = function() {
+                // 等待iframe内容完全准备好
+                setTimeout(() => {
+                    // 向iframe发送消息，准备显示书签表单
+                    iframe.contentWindow.postMessage({ 
+                        action: 'prepareAddModal' 
+                    }, '*');
+                }, 150);
+            };
+        }
+
+        // 显示iframe内容（当内容准备好时调用）
+        function showQuickAddIframe() {
+            const iframe = document.getElementById('quickAddIframe');
+            const loading = document.getElementById('quickAddLoading');
+            
+            // 隐藏加载指示器
+            loading.style.display = 'none';
+            
+            // 显示iframe
+            iframe.classList.add('ready');
+            
+            // 触发显示书签表单
+            setTimeout(() => {
+                iframe.contentWindow.postMessage({ action: 'showAddModal' }, '*');
+            }, 200); // 等待iframe显示动画完成
+        }
+
+        // 隐藏快捷添加弹窗
+        function hideQuickAddModal() {
+            const modal = document.getElementById('quickAddModal');
+            const iframe = document.getElementById('quickAddIframe');
+            const loading = document.getElementById('quickAddLoading');
+            
+            modal.classList.remove('show');
+            iframe.classList.remove('ready');
+            iframe.src = ''; // 清空iframe源
+            loading.style.display = 'none';
+        }
+
+        // 初始化快捷添加功能事件监听
+        function initQuickAddEvents() {
+            const quickAddBtn = document.getElementById('quickAddBtn');
+            const adminEntryBtn = document.getElementById('adminEntryBtn');
+            const modal = document.getElementById('quickAddModal');
+            
+            // 快捷添加按钮点击事件
+            if (quickAddBtn) {
+                quickAddBtn.addEventListener('click', showQuickAddModal);
+            }
+            
+            // 进入后台按钮点击事件
+            if (adminEntryBtn) {
+                adminEntryBtn.addEventListener('click', function() {
+                    window.open('/admin/categories.html', '_blank');
+                });
+            }
+            
+            // 点击弹窗背景关闭
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        hideQuickAddModal();
+                    }
+                });
+            }
+            
+            // ESC键关闭弹窗
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('quickAddModal');
+                    if (modal && modal.classList.contains('show')) {
+                        hideQuickAddModal();
+                    }
+                }
+            });
+            
+            // 监听来自iframe的消息
+            window.addEventListener('message', function(event) {
+                if (event.data) {
+                    // iframe内容准备完成，可以显示了
+                    if (event.data.action === 'quickAddReady') {
+                        showQuickAddIframe();
+                    }
+                    // 书签添加成功后刷新主页面
+                    else if (event.data.action === 'bookmarkAdded') {
+                        hideQuickAddModal();
+                        // 重新加载书签数据
+                        loadData();
+                    }
+                }
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            checkLoginStatus(); // 检查登录状态
+            initQuickAddEvents(); // 初始化快捷添加功能事件
+        });
+    </script>
+</body>
+</html> 

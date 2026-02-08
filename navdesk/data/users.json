@@ -1,0 +1,9 @@
+{
+  "secretKey": "your-secure-random-key-2025-navdesk-session",
+  "admin": {
+    "username": "admin",
+    "password": "123456",
+    "role": "admin",
+    "createdAt": "2023-12-01T10:00:00Z"
+  }
+}

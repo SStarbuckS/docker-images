@@ -1,0 +1,34 @@
+/* 全站统一主题变量 */
+/* 浅色模式（默认） */
+:root {
+    --bg-color: #f8f9fa;
+    --text-color: #333;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0, 0, 0, 0.08);
+    --card-shadow-hover: rgba(0, 0, 0, 0.12);
+    --border-color: #e0e0e0;
+    --input-bg: #ffffff;
+    --input-border: #e0e0e0;
+    --input-focus: #007aff;
+    --modal-bg: rgba(0, 0, 0, 0.5);
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --secondary-text: #666;
+}
+
+/* 深色模式 */
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --card-bg: #2d2d2d;
+    --card-shadow: rgba(0, 0, 0, 0.3);
+    --card-shadow-hover: rgba(0, 0, 0, 0.4);
+    --border-color: #404040;
+    --input-bg: #333333;
+    --input-border: #404040;
+    --input-focus: #007aff;
+    --modal-bg: rgba(0, 0, 0, 0.7);
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --secondary-text: #cccccc;
+} 

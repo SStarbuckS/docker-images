@@ -1,0 +1,50 @@
+[
+  {
+    "id": "all",
+    "name": "全部",
+    "icon": "🏠",
+    "sort": 0,
+    "uploadDir": "common",
+    "createdAt": "2023-12-01T10:00:00Z"
+  },
+  {
+    "id": "tools",
+    "name": "工具",
+    "icon": "🔧",
+    "sort": 1,
+    "uploadDir": "tool",
+    "createdAt": "2023-12-01T10:00:00Z"
+  },
+  {
+    "id": "design",
+    "name": "设计",
+    "icon": "🎨",
+    "sort": 2,
+    "uploadDir": "design",
+    "createdAt": "2023-12-01T10:00:00Z"
+  },
+  {
+    "id": "entertainment",
+    "name": "娱乐",
+    "icon": "🎵",
+    "sort": 3,
+    "uploadDir": "entertainment",
+    "createdAt": "2023-12-01T10:00:00Z"
+  },
+  {
+    "id": "learning",
+    "name": "学习",
+    "icon": "📚",
+    "sort": 4,
+    "uploadDir": "learning",
+    "createdAt": "2023-12-01T10:00:00Z"
+  },
+  {
+    "id": "shopping",
+    "name": "购物",
+    "icon": "🛍️",
+    "sort": 5,
+    "uploadDir": "shopping",
+    "createdAt": "2023-12-01T10:00:00Z"
+  }
+]

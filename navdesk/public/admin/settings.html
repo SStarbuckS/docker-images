@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 后台配置</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/static/css/theme-variables.css">
+    <!-- 防止主题闪烁：在页面渲染前立即应用主题 -->
+    <script src="/static/js/theme-init.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 主题变量已通过外部CSS文件引入：/css/theme-variables.css */
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #007aff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056cc;
+        }
+
+        .btn-secondary {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .settings-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 2px 16px var(--card-shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-description {
+            font-size: 12px;
+            color: var(--secondary-text);
+            margin-top: 4px;
+        }
+
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .theme-option {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--input-bg);
+        }
+
+        .theme-option.active {
+            border-color: #007aff;
+            background: rgba(0, 122, 255, 0.1);
+        }
+
+        .theme-option:hover {
+            border-color: #007aff;
+        }
+
+        .theme-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .theme-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+
+
+        .save-section {
+            position: sticky;
+            bottom: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--card-shadow);
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .theme-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1 class="header-title">系统设置</h1>
+            <div class="header-actions">
+                <a href="/admin/categories.html" class="btn btn-secondary">
+                    ← 返回管理
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 基本设置 -->
+        <div class="settings-section">
+            <h2 class="section-title">⚙️ 基本设置</h2>
+            
+            <div class="form-group">
+                <label class="form-label" for="siteTitle">网站标题</label>
+                <input type="text" class="form-input" id="siteTitle" placeholder="极简网站导航" maxlength="50">
+                <div class="form-description">显示在浏览器标签页和页面顶部的网站标题</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">网站图标 (Favicon)</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="file" id="faviconFile" accept="image/*" style="display: none;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('faviconFile').click()">
+                        📁 上传图标
+                    </button>
+                    <span id="faviconStatus" style="font-size: 12px; color: #666;"></span>
+                </div>
+                <div class="form-description">上传网站图标文件，将替换浏览器标签页的小图标。支持 ico、png、jpg 格式，建议尺寸 16x16 或 32x32 像素</div>
+            </div>
+        </div>
+
+        <!-- 显示设置 -->
+        <div class="settings-section">
+            <h2 class="section-title">🎨 显示设置</h2>
+            
+            <div class="form-group">
+                <label class="form-label">卡片尺寸</label>
+                <div class="form-row">
+                    <div>
+                        <input type="number" class="form-input" id="cardWidth" min="120" max="300" value="180">
+                        <div class="form-description">卡片宽度 (px)</div>
+                    </div>
+                    <div>
+                        <input type="number" class="form-input" id="cardHeight" min="60" max="150" value="80">
+                        <div class="form-description">卡片高度 (px)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="sidebarWidth">侧边栏宽度</label>
+                <input type="number" class="form-input" id="sidebarWidth" min="50" max="600" value="300">
+                <div class="form-description">左右两侧固定宽度 (px)，小屏幕时自动隐藏</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">图标尺寸</label>
+                <div class="form-row">
+                    <div>
+                        <input type="number" class="form-input" id="iconWidth" min="24" max="80" value="50">
+                        <div class="form-description">图标宽度 (px)</div>
+                    </div>
+                    <div>
+                        <input type="number" class="form-input" id="iconHeight" min="24" max="80" value="50">
+                        <div class="form-description">图标高度 (px)</div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- 主题设置 -->
+        <div class="settings-section">
+            <h2 class="section-title">🌓 主题设置</h2>
+            
+            <div class="form-group">
+                <label class="form-label">主题模式</label>
+                <div class="theme-selector">
+                    <div class="theme-option" data-theme="auto">
+                        <div class="theme-icon">🌗</div>
+                        <div class="theme-name">自动</div>
+                    </div>
+                    <div class="theme-option" data-theme="light">
+                        <div class="theme-icon">☀️</div>
+                        <div class="theme-name">日间</div>
+                    </div>
+                    <div class="theme-option" data-theme="dark">
+                        <div class="theme-icon">🌙</div>
+                        <div class="theme-name">夜间</div>
+                    </div>
+                </div>
+                <div class="form-description">自动模式将根据系统设置切换主题</div>
+            </div>
+        </div>
+
+        <!-- 保存按钮 -->
+        <div class="save-section">
+            <button type="button" class="btn btn-primary" id="saveButton" onclick="saveSettings()">
+                💾 保存设置
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSettings = {
+            siteTitle: '极简网站导航',
+            cardWidth: 180,
+            cardHeight: 80,
+            iconWidth: 50,
+            iconHeight: 50,
+            sidebarWidth: 300,
+            theme: 'auto'
+        };
+
+        // 检查登录状态
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/status');
+                const result = await response.json();
+                
+                if (!result.success || !result.isLoggedIn) {
+                    window.location.href = '/admin/login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Check auth error:', error);
+                window.location.href = '/admin/login.html';
+                return false;
+            }
+        }
+
+        // 加载设置
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentSettings = { ...currentSettings, ...result.data };
+                    updateForm();
+                }
+            } catch (error) {
+                console.error('Load settings error:', error);
+            }
+        }
+
+        // 更新表单
+        function updateForm() {
+            document.getElementById('siteTitle').value = currentSettings.siteTitle;
+            document.getElementById('cardWidth').value = currentSettings.cardWidth;
+            document.getElementById('cardHeight').value = currentSettings.cardHeight;
+            document.getElementById('iconWidth').value = currentSettings.iconWidth;
+            document.getElementById('iconHeight').value = currentSettings.iconHeight;
+            document.getElementById('sidebarWidth').value = currentSettings.sidebarWidth;
+            
+            // 更新主题选择
+            document.querySelectorAll('.theme-option').forEach(option => {
+                option.classList.toggle('active', option.dataset.theme === currentSettings.theme);
+            });
+        }
+
+
+
+        // 保存设置
+        async function saveSettings() {
+            const saveButton = document.getElementById('saveButton');
+            const originalText = saveButton.innerHTML;
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<span class="loading"></span>保存中...';
+            
+            try {
+                const settings = {
+                    siteTitle: document.getElementById('siteTitle').value.trim() || '极简网站导航',
+                    cardWidth: parseInt(document.getElementById('cardWidth').value),
+                    cardHeight: parseInt(document.getElementById('cardHeight').value),
+                    iconWidth: parseInt(document.getElementById('iconWidth').value),
+                    iconHeight: parseInt(document.getElementById('iconHeight').value),
+                    sidebarWidth: parseInt(document.getElementById('sidebarWidth').value),
+                    theme: currentSettings.theme
+                };
+                
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(settings)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('设置保存成功！前端页面将在下次刷新时应用新设置。');
+                    currentSettings = settings;
+                } else {
+                    alert(result.message || '保存失败');
+                }
+            } catch (error) {
+                console.error('Save settings error:', error);
+                alert('保存失败，请稍后重试');
+            } finally {
+                saveButton.disabled = false;
+                saveButton.innerHTML = originalText;
+            }
+        }
+
+        // 监听输入变化
+        ['cardWidth', 'cardHeight', 'iconWidth', 'iconHeight', 'sidebarWidth'].forEach(id => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                currentSettings[id] = parseInt(e.target.value);
+            });
+        });
+
+        // 监听网站标题变化
+        document.getElementById('siteTitle').addEventListener('input', (e) => {
+            currentSettings.siteTitle = e.target.value.trim() || '极简网站导航';
+        });
+
+        // 主题选择
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                currentSettings.theme = option.dataset.theme;
+            });
+        });
+
+        // Favicon 上传功能
+        document.getElementById('faviconFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const statusSpan = document.getElementById('faviconStatus');
+            statusSpan.textContent = '上传中...';
+            statusSpan.style.color = '#666';
+            
+            try {
+                const formData = new FormData();
+                formData.append('favicon', file);
+                
+                const response = await fetch('/api/upload/favicon', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    statusSpan.textContent = '上传成功！刷新页面查看新图标';
+                    statusSpan.style.color = '#28a745';
+                    
+                    // 3秒后清除状态
+                    setTimeout(() => {
+                        statusSpan.textContent = '';
+                    }, 3000);
+                } else {
+                    statusSpan.textContent = result.message || '上传失败';
+                    statusSpan.style.color = '#dc3545';
+                }
+            } catch (error) {
+                console.error('Favicon upload error:', error);
+                statusSpan.textContent = '上传失败，请稍后重试';
+                statusSpan.style.color = '#dc3545';
+            }
+            
+            // 清空文件选择
+            e.target.value = '';
+        });
+
+        // 同步前台主题设置到后台
+        function syncThemeFromFrontend() {
+            const frontendTheme = localStorage.getItem('theme') || 'auto';
+            const html = document.documentElement;
+            
+            if (frontendTheme === 'auto') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                html.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            } else {
+                html.setAttribute('data-theme', frontendTheme);
+            }
+        }
+
+        // 监听localStorage变化，实时同步主题
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') {
+                syncThemeFromFrontend();
+            }
+        });
+
+        // 监听系统主题变化
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const frontendTheme = localStorage.getItem('theme') || 'auto';
+            if (frontendTheme === 'auto') {
+                syncThemeFromFrontend();
+            }
+        });
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 立即同步前台主题
+            syncThemeFromFrontend();
+            
+            if (await checkAuth()) {
+                await loadSettings();
+            }
+        });
+    </script>
+</body>
+</html> 
