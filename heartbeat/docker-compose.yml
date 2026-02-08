@@ -1,0 +1,9 @@
+services:
+  heartbeat:
+    image: sstarbucks/heartbeat:latest
+    container_name: heartbeat
+    restart: unless-stopped
+    environment:
+      - TARGET_URL=https://your-url.com/api/health
+      - INTERVAL=30
+      - SHOW_RESPONSE=true 
