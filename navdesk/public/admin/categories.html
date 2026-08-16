@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分类管理 - 后台配置</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/static/css/theme-variables.css">
+    <!-- 防止主题闪烁：在页面渲染前立即应用主题 -->
+    <script src="/static/js/theme-init.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 主题变量已通过外部CSS文件引入：/css/theme-variables.css */
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #007aff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056cc;
+        }
+
+        .btn-secondary {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-danger {
+            background: #ff3b30;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d70015;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 16px var(--card-shadow);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--card-shadow-hover);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .category-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .category-info {
+            flex: 1;
+        }
+
+        .category-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .category-meta {
+            font-size: 13px;
+            color: var(--secondary-text);
+        }
+
+        .category-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-bg);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--secondary-text);
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s ease;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--secondary-text);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .icon-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .icon-upload-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .upload-status {
+            font-size: 12px;
+            color: var(--secondary-text);
+        }
+
+        .upload-status.success {
+            color: var(--success-color);
+        }
+
+        .upload-status.error {
+            color: var(--error-color);
+        }
+
+        @media (max-width: 768px) {
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header-title {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1 class="header-title">分类管理</h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="showAddModal()">
+                    ➕ 新增分类
+                </button>
+                <a href="/admin/settings.html" class="btn btn-secondary">
+                    ⚙️ 系统设置
+                </a>
+                <a href="/" class="btn btn-secondary">
+                    🏠 返回首页
+                </a>
+                <button class="btn btn-secondary" onclick="logout()">
+                    🚪 退出登录
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="categories-grid" id="categoriesGrid">
+            <!-- 分类卡片将通过 JavaScript 动态加载 -->
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">📁</div>
+            <p>暂无分类，点击上方按钮新增分类</p>
+        </div>
+    </div>
+
+    <!-- 新增/编辑分类弹窗 -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">新增分类</h2>
+                <button class="modal-close" onclick="hideModal()">&times;</button>
+            </div>
+            
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label class="form-label" for="categoryName">分类名称</label>
+                    <input type="text" class="form-input" id="categoryName" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="categoryIcon">图标</label>
+                    <div class="icon-input-container">
+                        <input type="text" class="form-input" id="categoryIcon" name="icon" placeholder="📁 或输入图标URL" required>
+                        <div class="icon-upload-section">
+                            <input type="file" id="iconFile" accept="image/*" style="display: none;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('iconFile').click()">
+                                📁 上传图标
+                            </button>
+                            <span class="upload-status" id="uploadStatus"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="categoryUploadDir">上传目录</label>
+                    <input type="text" class="form-input" id="categoryUploadDir" name="uploadDir" placeholder="category-name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="categorySort">排序值</label>
+                    <input type="number" class="form-input" id="categorySort" name="sort" min="0" placeholder="0">
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal()">取消</button>
+                    <button type="submit" class="btn btn-primary" id="submitButton">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let categories = [];
+        let editingCategory = null;
+
+        // 检查登录状态
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/status');
+                const result = await response.json();
+                
+                if (!result.success || !result.isLoggedIn) {
+                    window.location.href = '/admin/login.html';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Check auth error:', error);
+                window.location.href = '/admin/login.html';
+                return false;
+            }
+        }
+
+        // 加载分类数据
+        async function loadCategories() {
+            try {
+                // 同时获取分类和书签数据
+                const [categoriesResponse, bookmarksResponse] = await Promise.all([
+                    fetch('/api/categories'),
+                    fetch('/api/bookmarks')
+                ]);
+                
+                const categoriesResult = await categoriesResponse.json();
+                const bookmarksResult = await bookmarksResponse.json();
+                
+                if (categoriesResult.success && bookmarksResult.success) {
+                    categories = categoriesResult.data;
+                    const bookmarks = bookmarksResult.data;
+                    
+                    // 计算每个分类的书签数量
+                    categories.forEach(category => {
+                        if (category.id === 'all') {
+                            // "全部"分类显示所有书签数量
+                            category.bookmarkCount = bookmarks.length;
+                        } else {
+                            // 其他分类只计算属于该分类的书签
+                            category.bookmarkCount = bookmarks.filter(bookmark => 
+                                bookmark.category === category.id
+                            ).length;
+                        }
+                    });
+                    
+                    renderCategories();
+                } else {
+                    console.error('Failed to load data:', categoriesResult.message || bookmarksResult.message);
+                }
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        // 渲染分类列表
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (categories.length === 0) {
+                grid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            grid.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            grid.replaceChildren();
+            categories.forEach(category => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+
+                const header = document.createElement('div');
+                header.className = 'category-header';
+
+                const icon = document.createElement('div');
+                icon.className = 'category-icon';
+                icon.textContent = category.icon || '';
+
+                const info = document.createElement('div');
+                info.className = 'category-info';
+
+                const name = document.createElement('div');
+                name.className = 'category-name';
+                name.textContent = category.name || '';
+
+                const meta = document.createElement('div');
+                meta.className = 'category-meta';
+                meta.textContent = `排序: ${category.sort} | 图标目录: ${category.uploadDir} | 共有${category.bookmarkCount || 0}个书签`;
+
+                info.append(name, meta);
+                header.append(icon, info);
+
+                const actions = document.createElement('div');
+                actions.className = 'category-actions';
+
+                const manageLink = document.createElement('a');
+                manageLink.href = `/admin/category-detail.html?id=${encodeURIComponent(category.id)}`;
+                manageLink.className = 'btn btn-primary btn-sm';
+                manageLink.textContent = '📋 管理书签';
+
+                const editButton = document.createElement('button');
+                editButton.type = 'button';
+                editButton.className = 'btn btn-secondary btn-sm';
+                editButton.textContent = '✏️ 编辑';
+                editButton.addEventListener('click', () => editCategory(category.id));
+
+                actions.append(manageLink, editButton);
+
+                if (category.id !== 'all') {
+                    const deleteButton = document.createElement('button');
+                    deleteButton.type = 'button';
+                    deleteButton.className = 'btn btn-danger btn-sm';
+                    deleteButton.textContent = '🗑️ 删除';
+                    deleteButton.addEventListener('click', () => deleteCategory(category.id));
+                    actions.appendChild(deleteButton);
+                }
+
+                card.append(header, actions);
+                grid.appendChild(card);
+            });
+        }
+
+        // 显示新增弹窗
+        function showAddModal() {
+            editingCategory = null;
+            document.getElementById('modalTitle').textContent = '新增分类';
+            document.getElementById('categoryForm').reset();
+            document.getElementById('categoryModal').classList.add('show');
+        }
+
+        // 编辑分类
+        function editCategory(categoryId) {
+            const category = categories.find(c => c.id === categoryId);
+            if (!category) return;
+            
+            editingCategory = category;
+            document.getElementById('modalTitle').textContent = '编辑分类';
+            document.getElementById('categoryName').value = category.name;
+            document.getElementById('categoryIcon').value = category.icon;
+            document.getElementById('categoryUploadDir').value = category.uploadDir;
+            document.getElementById('categorySort').value = category.sort;
+            document.getElementById('categoryModal').classList.add('show');
+        }
+
+        // 隐藏弹窗
+        function hideModal() {
+            document.getElementById('categoryModal').classList.remove('show');
+            editingCategory = null;
+            // 清除上传状态
+            document.getElementById('uploadStatus').textContent = '';
+            document.getElementById('iconFile').value = '';
+        }
+
+        // 提交表单
+        document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                name: formData.get('name'),
+                icon: formData.get('icon'),
+                uploadDir: formData.get('uploadDir'),
+                sort: parseInt(formData.get('sort')) || 0
+            };
+            
+            const submitButton = document.getElementById('submitButton');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="loading"></span>保存中...';
+            
+            try {
+                const url = editingCategory 
+                    ? `/api/categories/${editingCategory.id}`
+                    : '/api/categories';
+                const method = editingCategory ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    hideModal();
+                    loadCategories();
+                } else {
+                    alert(result.message || '保存失败');
+                }
+            } catch (error) {
+                console.error('Error saving category:', error);
+                alert('保存失败，请稍后重试');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            }
+        });
+
+        // 删除分类
+        async function deleteCategory(categoryId) {
+            if (!confirm('⚠️ 警告：删除分类将会同时删除该分类下的所有书签和相关图标文件，此操作不可恢复！\n\n确定要删除这个分类吗？')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/categories/${categoryId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadCategories();
+                } else {
+                    alert(result.message || '删除失败');
+                }
+            } catch (error) {
+                console.error('Error deleting category:', error);
+                alert('删除失败，请稍后重试');
+            }
+        }
+
+        // 退出登录
+        async function logout() {
+            if (!confirm('确定要退出登录吗？')) return;
+            
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/admin/login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/admin/login.html';
+            }
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById('categoryModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                hideModal();
+            }
+        });
+
+        // ESC 键关闭弹窗
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideModal();
+            }
+        });
+
+        // 上传图标
+        document.getElementById('iconFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const uploadStatus = document.getElementById('uploadStatus');
+            uploadStatus.textContent = '上传中...';
+            uploadStatus.className = 'upload-status';
+            
+            try {
+                const formData = new FormData();
+                formData.append('icon', file);
+                formData.append('category', 'common'); // 分类图标存储在 common 目录
+                
+                const response = await fetch('/api/upload/icon', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('categoryIcon').value = result.url;
+                    uploadStatus.textContent = '上传成功';
+                    uploadStatus.className = 'upload-status success';
+                } else {
+                    uploadStatus.textContent = result.message || '上传失败';
+                    uploadStatus.className = 'upload-status error';
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                uploadStatus.textContent = '上传失败，请稍后重试';
+                uploadStatus.className = 'upload-status error';
+            }
+        });
+
+        // 同步前台主题设置到后台
+        function syncThemeFromFrontend() {
+            const frontendTheme = localStorage.getItem('theme') || 'auto';
+            const html = document.documentElement;
+            
+            if (frontendTheme === 'auto') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                html.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            } else {
+                html.setAttribute('data-theme', frontendTheme);
+            }
+        }
+
+        // 监听localStorage变化，实时同步主题
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'theme') {
+                syncThemeFromFrontend();
+            }
+        });
+
+        // 监听系统主题变化
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const frontendTheme = localStorage.getItem('theme') || 'auto';
+            if (frontendTheme === 'auto') {
+                syncThemeFromFrontend();
+            }
+        });
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 立即同步前台主题
+            syncThemeFromFrontend();
+            
+            if (await checkAuth()) {
+                loadCategories();
+            }
+        });
+    </script>
+</body>
+</html> 

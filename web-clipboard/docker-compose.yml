@@ -1,0 +1,11 @@
+services:
+  web-clipboard:
+    image: sstarbucks/web-clipboard:latest
+    container_name: web-clipboard
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./data:/data

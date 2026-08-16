@@ -1,0 +1,10 @@
+services:
+  useragent:
+    image: sstarbucks/useragent:latest
+    container_name: useragent
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - TZ=Asia/Shanghai
+      - URL_PREFIX=/

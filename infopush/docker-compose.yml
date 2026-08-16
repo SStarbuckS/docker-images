@@ -1,0 +1,12 @@
+services:
+  infopush:
+    image: sstarbucks/infopush:latest
+    container_name: infopush
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Shanghai
+ 

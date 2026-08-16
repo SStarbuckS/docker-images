@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web 剪贴板</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #172026;
+      --muted: #66727f;
+      --line: #d8dee6;
+      --accent: #2563eb;
+      --accent-strong: #1748b5;
+      --accent-text: #ffffff;
+      --danger: #b42318;
+      --ok: #16803c;
+      --button-hover-line: #aab6c4;
+      --focus-ring: rgba(37, 99, 235, 0.14);
+      --shadow: rgba(23, 32, 38, 0.14);
+      --strong-shadow: rgba(23, 32, 38, 0.18);
+      --ok-line: rgba(22, 128, 60, 0.38);
+      --danger-line: rgba(180, 35, 24, 0.38);
+      --line-bg: #f0f3f7;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111315;
+        --panel: #1b1f23;
+        --text: #edf2f7;
+        --muted: #9aa6b2;
+        --line: #343b44;
+        --accent: #4f8ef7;
+        --accent-strong: #75a9ff;
+        --accent-text: #ffffff;
+        --danger: #ff8a7a;
+        --ok: #73d39a;
+        --button-hover-line: #52606d;
+        --focus-ring: rgba(79, 142, 247, 0.24);
+        --shadow: rgba(0, 0, 0, 0.36);
+        --strong-shadow: rgba(0, 0, 0, 0.44);
+        --ok-line: rgba(115, 211, 154, 0.34);
+        --danger-line: rgba(255, 138, 122, 0.34);
+        --line-bg: #15181c;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      padding: 0 14px;
+      transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+    }
+
+    button:hover {
+      border-color: var(--button-hover-line);
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-text);
+    }
+
+    button.primary:hover {
+      border-color: var(--accent-strong);
+      background: var(--accent-strong);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 24px 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .title-block {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .status-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+      min-height: 20px;
+      text-align: right;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .logout-button {
+      height: 32px;
+      min-height: 32px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    .tip {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      z-index: 20;
+      width: min(520px, calc(100% - 32px));
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 12px 28px var(--shadow);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.45;
+      text-align: center;
+      transform: translateX(-50%);
+    }
+
+    .tip.ok {
+      border-color: var(--ok-line);
+      color: var(--ok);
+    }
+
+    .tip.error {
+      border-color: var(--danger-line);
+      color: var(--danger);
+    }
+
+    .login {
+      align-self: start;
+      width: min(420px, 100%);
+      margin: 14vh auto 0;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      display: grid;
+      gap: 14px;
+    }
+
+    .login h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .login input {
+      min-height: 44px;
+      padding: 0 12px;
+    }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(360px, 1fr);
+      gap: 12px;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      background: var(--bg);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      min-height: 20px;
+    }
+
+    .editor {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .editor:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .line-numbers,
+    textarea {
+      height: 100%;
+      min-height: 0;
+      line-height: 1.55;
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 16px;
+    }
+
+    .line-numbers {
+      border-right: 1px solid var(--line);
+      background: var(--line-bg);
+      color: var(--muted);
+      cursor: pointer;
+      overflow: hidden;
+      padding: 16px 8px;
+      text-align: right;
+      user-select: none;
+      white-space: pre;
+    }
+
+    textarea {
+      border: 0;
+      border-radius: 0;
+      padding: 16px;
+      resize: vertical;
+      box-shadow: none;
+    }
+
+    textarea:focus {
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .floating-tools {
+      position: fixed;
+      right: 24px;
+      right: calc(24px + env(safe-area-inset-right));
+      bottom: 24px;
+      bottom: calc(24px + env(safe-area-inset-bottom));
+      z-index: 18;
+      display: grid;
+      pointer-events: none;
+    }
+
+    .jump {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      min-height: 36px;
+      padding: 0;
+      border-radius: 50%;
+      background: var(--panel);
+      box-shadow: 0 8px 20px var(--strong-shadow);
+      font-size: 18px;
+      line-height: 1;
+      pointer-events: auto;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100% - 20px, 1120px);
+        padding: 14px 0;
+      }
+
+      header {
+        align-items: flex-start;
+      }
+
+      .title-block {
+        flex: 1 1 auto;
+      }
+
+      .status {
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .status-actions {
+        flex: 0 0 auto;
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+      }
+
+      .toolbar,
+      .actions {
+        width: 100%;
+      }
+
+      .actions button {
+        flex: 1 1 calc(50% - 8px);
+      }
+
+      .floating-tools {
+        right: 16px;
+        right: calc(16px + env(safe-area-inset-right));
+        bottom: 84px;
+        bottom: calc(84px + env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="title-block">
+        <h1>Web 剪贴板</h1>
+        <div id="meta" class="meta"></div>
+      </div>
+      <div class="status-actions">
+        <div id="status" class="status"></div>
+        <button id="logout" class="logout-button" type="button" title="退出登录" aria-label="退出登录" hidden>登出</button>
+      </div>
+    </header>
+
+    <form id="login" class="login" hidden>
+      <h2>登录</h2>
+      <input id="username" type="text" autocomplete="username" placeholder="用户名" required>
+      <input id="password" type="password" autocomplete="current-password" placeholder="密码" required>
+      <button class="primary" type="submit">登录</button>
+    </form>
+
+    <section id="workspace" class="workspace" hidden>
+      <div class="toolbar">
+        <div class="actions">
+          <button id="refresh" type="button">刷新</button>
+          <button id="save" class="primary" type="button">保存</button>
+        </div>
+      </div>
+
+      <div id="floatingTools" class="floating-tools" hidden>
+        <button id="jump" class="jump" type="button" title="去到底部" aria-label="去到底部">↓</button>
+      </div>
+
+      <div class="editor">
+        <div id="lineNumbers" class="line-numbers" aria-hidden="true" title="点击行号复制该行">1</div>
+        <textarea id="text" spellcheck="false" wrap="off"></textarea>
+      </div>
+    </section>
+  </main>
+  <div id="tip" class="tip" hidden></div>
+
+  <script>
+    const els = {
+      status: document.querySelector("#status"),
+      tip: document.querySelector("#tip"),
+      floatingTools: document.querySelector("#floatingTools"),
+      login: document.querySelector("#login"),
+      username: document.querySelector("#username"),
+      password: document.querySelector("#password"),
+      workspace: document.querySelector("#workspace"),
+      lineNumbers: document.querySelector("#lineNumbers"),
+      text: document.querySelector("#text"),
+      jump: document.querySelector("#jump"),
+      refresh: document.querySelector("#refresh"),
+      save: document.querySelector("#save"),
+      logout: document.querySelector("#logout"),
+      meta: document.querySelector("#meta")
+    };
+
+    const API_BASE = inferAPIBase();
+    let dirty = false;
+    let tipTimer = 0;
+
+    /**
+     * 推导接口路径前缀。
+     */
+    function inferAPIBase() {
+      const script = document.currentScript;
+      if (script && script.src) {
+        const scriptURL = new URL(script.src, window.location.href);
+        if (scriptURL.origin === window.location.origin) {
+          return normalizeBasePath(scriptURL.pathname);
+        }
+      }
+      return normalizeBasePath(window.location.pathname);
+    }
+
+    /**
+     * 规范化页面路径前缀。
+     */
+    function normalizeBasePath(pathname) {
+      let path = pathname.replace(/\/+$/, "");
+      if (path.endsWith("/index.html")) {
+        path = path.slice(0, -"/index.html".length);
+      }
+      if (path === "" || path === "/") {
+        return "";
+      }
+      return path;
+    }
+
+    /**
+     * 生成接口请求路径。
+     */
+    function apiPath(path) {
+      return `${API_BASE}${path}`;
+    }
+
+    /**
+     * 为非空文本补齐末尾空行。
+     */
+    function appendTrailingLine(text) {
+      if (!text || text.endsWith("\n")) {
+        return text;
+      }
+      return `${text}\n`;
+    }
+
+    /**
+     * 设置页面状态提示。
+     */
+    function setStatus(message, kind = "") {
+      els.status.textContent = message;
+      els.status.className = `status ${kind}`.trim();
+    }
+
+    /**
+     * 显示操作结果横幅。
+     */
+    function showTip(message, kind = "") {
+      window.clearTimeout(tipTimer);
+      els.tip.textContent = message;
+      els.tip.className = `tip ${kind}`.trim();
+      els.tip.hidden = false;
+      tipTimer = window.setTimeout(() => {
+        els.tip.hidden = true;
+      }, 2600);
+    }
+
+    /**
+     * 同步行号底部滚动余量。
+     */
+    function syncLineNumberPadding() {
+      const textStyle = window.getComputedStyle(els.text);
+      const basePadding = parseFloat(textStyle.paddingBottom) || 0;
+      const scrollbarHeight = Math.max(0, els.text.offsetHeight - els.text.clientHeight);
+      els.lineNumbers.style.paddingBottom = `${basePadding + scrollbarHeight}px`;
+    }
+
+    /**
+     * 同步行号滚动位置。
+     */
+    function syncLineNumbers() {
+      syncLineNumberPadding();
+      els.lineNumbers.scrollTop = els.text.scrollTop;
+      updateJumpButton();
+    }
+
+    /**
+     * 更新编辑区行号。
+     */
+    function updateLineNumbers() {
+      const lineCount = Math.max(1, els.text.value.split("\n").length);
+      els.lineNumbers.textContent = Array.from({ length: lineCount }, (_, index) => index + 1).join("\n");
+      syncLineNumbers();
+    }
+
+    /**
+     * 根据行号点击位置获取行索引。
+     */
+    function getLineIndexFromClick(event) {
+      const lines = els.text.value.split("\n");
+      const style = window.getComputedStyle(els.lineNumbers);
+      const lineHeight = parseFloat(style.lineHeight) || 1;
+      const paddingTop = parseFloat(style.paddingTop) || 0;
+      const rect = els.lineNumbers.getBoundingClientRect();
+      const y = event.clientY - rect.top + els.lineNumbers.scrollTop - paddingTop;
+      const index = Math.floor(y / lineHeight);
+      return Math.min(Math.max(index, 0), lines.length - 1);
+    }
+
+    /**
+     * 复制点击行号对应的文本行。
+     */
+    async function copyClickedLine(event) {
+      const lines = els.text.value.split("\n");
+      const index = getLineIndexFromClick(event);
+      try {
+        await navigator.clipboard.writeText(lines[index] || "");
+        showTip(`已复制第 ${index + 1} 行`, "ok");
+        setStatus("已复制", "ok");
+      } catch (error) {
+        showTip(`复制失败：${error.message}`, "error");
+        setStatus("复制失败", "error");
+      }
+    }
+
+    /**
+     * 更新跳转按钮状态。
+     */
+    function updateJumpButton() {
+      const atTop = els.text.scrollTop <= 0;
+      const label = atTop ? "去到底部" : "回到顶部";
+      els.jump.textContent = atTop ? "↓" : "↑";
+      els.jump.title = label;
+      els.jump.setAttribute("aria-label", label);
+    }
+
+    /**
+     * 跳转编辑区顶部或底部。
+     */
+    function jumpEditor() {
+      if (els.text.scrollTop <= 0) {
+        els.text.scrollTop = els.text.scrollHeight;
+      } else {
+        els.text.scrollTop = 0;
+      }
+      syncLineNumbers();
+    }
+
+    /**
+     * 重置编辑区显示位置。
+     */
+    function resetEditorViewport() {
+      els.text.selectionStart = 0;
+      els.text.selectionEnd = 0;
+      els.text.scrollTop = 0;
+      els.text.scrollLeft = 0;
+      els.lineNumbers.scrollTop = 0;
+      updateJumpButton();
+    }
+
+    /**
+     * 发送接口请求。
+     */
+    async function request(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+
+      if (response.status === 401) {
+        throw new Error(path.endsWith("/api/session") ? "用户名或密码错误" : "未登录或登录已过期");
+      }
+      if (!response.ok) {
+        let detail = response.statusText;
+        try {
+          const body = await response.json();
+          detail = body.error || detail;
+        } catch (_) {}
+        throw new Error(detail);
+      }
+      if (response.status === 204) {
+        return null;
+      }
+      return response.json();
+    }
+
+    /**
+     * 应用剪贴板状态。
+     */
+    function applyState(state, resetView = true) {
+      if (!state) {
+        return;
+      }
+
+      els.text.value = appendTrailingLine(state.text || "");
+      updateLineNumbers();
+      if (resetView) {
+        resetEditorViewport();
+      }
+      dirty = false;
+      els.meta.textContent = `最后更新：${new Date(state.updatedAt).toLocaleString()}`;
+      setStatus("已同步", "ok");
+    }
+
+    /**
+     * 刷新剪贴板内容。
+     */
+    async function refresh() {
+      const state = await request(apiPath("/api/clipboard"));
+      applyState(state);
+    }
+
+    /**
+     * 启动页面工作区。
+     */
+    async function start() {
+      await refresh();
+      els.login.hidden = true;
+      els.workspace.hidden = false;
+      els.floatingTools.hidden = false;
+      els.logout.hidden = false;
+      window.requestAnimationFrame(() => {
+        resetEditorViewport();
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+          els.text.focus({ preventScroll: true });
+        }
+      });
+    }
+
+    els.login.addEventListener("submit", async event => {
+      event.preventDefault();
+      setStatus("正在登录...");
+      try {
+        await request(apiPath("/api/session"), {
+          method: "POST",
+          body: JSON.stringify({
+            username: els.username.value,
+            password: els.password.value
+          })
+        });
+        els.password.value = "";
+        await start();
+      } catch (error) {
+        setStatus(error.message, "error");
+      }
+    });
+
+    els.text.addEventListener("input", () => {
+      dirty = true;
+      setStatus("已编辑");
+      updateLineNumbers();
+    });
+
+    els.text.addEventListener("scroll", syncLineNumbers);
+    els.lineNumbers.addEventListener("click", copyClickedLine);
+    window.addEventListener("resize", syncLineNumbers);
+
+    els.jump.addEventListener("click", jumpEditor);
+
+    els.save.addEventListener("click", async () => {
+      els.save.disabled = true;
+      setStatus("正在保存...");
+      try {
+        const state = await request(apiPath("/api/clipboard"), {
+          method: "PUT",
+          body: JSON.stringify({ text: appendTrailingLine(els.text.value) })
+        });
+        applyState(state, false);
+        showTip("保存成功", "ok");
+      } catch (error) {
+        setStatus(error.message, "error");
+        showTip(`保存失败：${error.message}`, "error");
+      } finally {
+        els.save.disabled = false;
+      }
+    });
+
+    els.refresh.addEventListener("click", async () => {
+      setStatus("正在刷新...");
+      try {
+        dirty = false;
+        await refresh();
+        showTip("刷新成功", "ok");
+      } catch (error) {
+        setStatus(error.message, "error");
+        showTip(`刷新失败：${error.message}`, "error");
+      }
+    });
+
+    els.logout.addEventListener("click", async () => {
+      await request(apiPath("/api/session"), { method: "DELETE" });
+      dirty = false;
+      els.workspace.hidden = true;
+      els.floatingTools.hidden = true;
+      els.logout.hidden = true;
+      els.login.hidden = false;
+      setStatus("");
+      els.username.focus();
+    });
+
+    start().catch(() => {
+      els.login.hidden = false;
+      els.workspace.hidden = true;
+      els.floatingTools.hidden = true;
+      els.logout.hidden = true;
+      setStatus("");
+    });
+    updateLineNumbers();
+  </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+[
+  {
+    "id": "bookmark1",
+    "name": "GitHub",
+    "url": "https://github.com",
+    "description": "全球最大的代码托管平台，开发者必备工具",
+    "icon": "https://github.com/favicon.ico",
+    "category": "tools",
+    "tags": [
+      "代码",
+      "开发",
+      "版本控制"
+    ],
+    "sort": 2,
+    "createdAt": "2023-12-01T10:00:00Z",
+    "updatedAt": "2025-09-20T04:24:43.259Z"
+  },
+  {
+    "id": "bookmark2",
+    "name": "Notion",
+    "url": "https://notion.so",
+    "description": "强大的笔记和项目管理工具",
+    "icon": "https://notion.so/favicon.ico",
+    "category": "tools",
+    "tags": [
+      "笔记",
+      "管理",
+      "协作"
+    ],
+    "sort": 1,
+    "createdAt": "2023-12-01T10:05:00Z",
+    "updatedAt": "2025-09-20T04:24:39.592Z"
+  },
+  {
+    "id": "bookmark3",
+    "name": "Google Drive",
+    "url": "https://drive.google.com",
+    "description": "云端文件存储和协作平台",
+    "icon": "https://drive.google.com/favicon.ico",
+    "category": "tools",
+    "tags": [
+      "云存储",
+      "文件",
+      "协作"
+    ],
+    "sort": 3,
+    "createdAt": "2023-12-01T10:10:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark4",
+    "name": "Figma",
+    "url": "https://figma.com",
+    "description": "专业的UI/UX设计协作工具",
+    "icon": "https://figma.com/favicon.ico",
+    "category": "design",
+    "tags": [
+      "设计",
+      "UI",
+      "UX",
+      "协作"
+    ],
+    "sort": 1,
+    "createdAt": "2023-12-01T10:15:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark5",
+    "name": "Unsplash",
+    "url": "https://unsplash.com",
+    "description": "高质量免费图片素材库",
+    "icon": "https://unsplash.com/favicon.ico",
+    "category": "design",
+    "tags": [
+      "图片",
+      "素材",
+      "摄影"
+    ],
+    "sort": 2,
+    "createdAt": "2023-12-01T10:20:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark6",
+    "name": "Dribbble",
+    "url": "https://dribbble.com",
+    "description": "设计师作品展示和灵感平台",
+    "icon": "https://dribbble.com/favicon.ico",
+    "category": "design",
+    "tags": [
+      "设计",
+      "灵感",
+      "作品"
+    ],
+    "sort": 3,
+    "createdAt": "2023-12-01T10:25:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark7",
+    "name": "Spotify",
+    "url": "https://spotify.com",
+    "description": "全球领先的音乐流媒体平台",
+    "icon": "https://spotify.com/favicon.ico",
+    "category": "entertainment",
+    "tags": [
+      "音乐",
+      "流媒体",
+      "播放"
+    ],
+    "sort": 1,
+    "createdAt": "2023-12-01T10:30:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark9",
+    "name": "Steam",
+    "url": "https://store.steampowered.com",
+    "description": "PC游戏数字发行平台",
+    "icon": "https://store.steampowered.com/favicon.ico",
+    "category": "entertainment",
+    "tags": [
+      "游戏",
+      "PC",
+      "数字发行"
+    ],
+    "sort": 3,
+    "createdAt": "2023-12-01T10:40:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark10",
+    "name": "Coursera",
+    "url": "https://coursera.org",
+    "description": "世界顶级大学在线课程平台",
+    "icon": "https://coursera.org/favicon.ico",
+    "category": "learning",
+    "tags": [
+      "教育",
+      "课程",
+      "大学"
+    ],
+    "sort": 1,
+    "createdAt": "2023-12-01T10:45:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark11",
+    "name": "Khan Academy",
+    "url": "https://khanacademy.org",
+    "description": "免费的世界级教育资源",
+    "icon": "https://khanacademy.org/favicon.ico",
+    "category": "learning",
+    "tags": [
+      "教育",
+      "免费",
+      "学习"
+    ],
+    "sort": 2,
+    "createdAt": "2023-12-01T10:50:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark12",
+    "name": "Medium",
+    "url": "https://medium.com",
+    "description": "高质量文章和知识分享平台",
+    "icon": "https://medium.com/favicon.ico",
+    "category": "learning",
+    "tags": [
+      "文章",
+      "知识",
+      "分享"
+    ],
+    "sort": 3,
+    "createdAt": "2023-12-01T10:55:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark13",
+    "name": "Amazon",
+    "url": "https://amazon.com",
+    "description": "全球最大的电商购物平台",
+    "icon": "https://amazon.com/favicon.ico",
+    "category": "shopping",
+    "tags": [
+      "购物",
+      "电商",
+      "全球"
+    ],
+    "sort": 1,
+    "createdAt": "2023-12-01T11:00:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark14",
+    "name": "淘宝",
+    "url": "https://taobao.com",
+    "description": "中国最大的网络零售平台",
+    "icon": "https://taobao.com/favicon.ico",
+    "category": "shopping",
+    "tags": [
+      "购物",
+      "零售",
+      "中国"
+    ],
+    "sort": 2,
+    "createdAt": "2023-12-01T11:05:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark15",
+    "name": "Apple Store",
+    "url": "https://apple.com",
+    "description": "苹果官方产品在线商店",
+    "icon": "https://apple.com/favicon.ico",
+    "category": "shopping",
+    "tags": [
+      "苹果",
+      "官方",
+      "产品"
+    ],
+    "sort": 3,
+    "createdAt": "2023-12-01T11:10:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  },
+  {
+    "id": "bookmark_1758347292042_4khq44xfb",
+    "name": "netflix",
+    "url": "https://netflix.com",
+    "description": "测试书签描述",
+    "icon": "/uploads/entertainment/icon_1758382141671_jk73ip0um.ico",
+    "category": "entertainment",
+    "tags": [],
+    "sort": 0,
+    "createdAt": "2023-12-01T11:05:00Z",
+    "updatedAt": "0001-01-01T00:00:00Z"
+  }
+]
